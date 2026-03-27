@@ -51,6 +51,11 @@ if $SUDO docker info >/dev/null 2>&1; then
 else
     echo "⚠️ Docker installed, but daemon not running (this can be normal)"
 fi
+if $SUDO docker run --rm hello-world >/dev/null 2>&1; then
+    echo "Docker fully working (containers run successfully)"
+else
+    echo "⚠️ Docker installed, but cannot run containers"
+fi
 if [[ -n "${USER:-}" && "$USER" != "root" ]]; then
     $SUDO usermod -aG docker "$USER" || true
 fi
