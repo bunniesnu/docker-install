@@ -18,6 +18,10 @@ elif command -v dnf >/dev/null 2>&1; then
     PKG="dnf"
 elif command -v pacman >/dev/null 2>&1; then
     PKG="pacman"
+elif command -v apk >/dev/null 2>&1; then
+    PKG="apk"
+elif command -v zypper >/dev/null 2>&1; then
+    PKG="zypper"
 else
     echo "Unsupported package manager"
     exit 1
@@ -50,28 +54,30 @@ install_apt() {
 }
 install_dnf() {
     $SUDO dnf -y install dnf-plugins-core
-
     $SUDO dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-
     $SUDO dnf -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
     $SUDO systemctl enable --now docker || true
 }
 install_pacman() {
     $SUDO pacman -Sy --noconfirm docker docker-compose
-
+    $SUDO systemctl enable --now docker || true
+}
+install_apk() {
+    $SUDO apk add --no-cache docker docker-cli-compose
+    $SUDO rc-update add docker default || true
+    $SUDO service docker start || true
+}
+install_zypper() {
+    $SUDO zypper refresh
+    $SUDO zypper install -y docker docker-compose
     $SUDO systemctl enable --now docker || true
 }
 case "$PKG" in
-    apt)
-        install_apt
-        ;;
-    dnf)
-        install_dnf
-        ;;
-    pacman)
-        install_pacman
-        ;;
+    apt) install_apt ;;
+    dnf) install_dnf ;;
+    pacman) install_pacman ;;
+    apk) install_apk ;;
+    zypper) install_zypper ;;
 esac
 if ! command -v docker >/dev/null 2>&1; then
     echo "Docker installation failed"
