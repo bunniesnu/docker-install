@@ -53,7 +53,7 @@ install_apt() {
     
 }
 install_dnf() {
-    $SUDO dnf -y install dnf-plugins-core curl gnupg2 ca-certificates
+    $SUDO dnf -y install dnf-plugins-core
     $SUDO dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
     $SUDO dnf -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     $SUDO systemctl enable --now docker || true

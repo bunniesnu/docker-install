@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
@@ -53,8 +53,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Make script executable
-        run: chmod +x install.sh
-
       - name: Run script
-        run: ./install.sh
+        run: |
+          chmod +x "$GITHUB_WORKSPACE/install.sh"
+          "$GITHUB_WORKSPACE/install.sh"
