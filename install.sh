@@ -1,0 +1,49 @@
+#!/bin/bash
+set -euxo pipefail
+if [ ! -f /etc/os-release ]; then
+    echo "Unknown OS"
+    exit 1
+fi
+. /etc/os-release
+if [[ "$ID" != "debian" && "${ID_LIKE:-}" != *debian* ]]; then
+    echo "Not Debian-based"
+    exit 1
+fi
+if ! command -v apt >/dev/null 2>&1; then
+    echo "apt not available"
+    exit 1
+fi
+SUDO=""
+if command -v sudo >/dev/null 2>&1; then
+    SUDO="sudo"
+fi
+DISTRO_CODENAME="${VERSION_CODENAME:-$(lsb_release -cs 2>/dev/null || true)}"
+if [[ -z "$DISTRO_CODENAME" ]]; then
+    echo "Could not determine distro codename"
+    exit 1
+fi
+echo "ID=$ID"
+echo "ID_LIKE=${ID_LIKE:-}"
+echo "CODENAME=$DISTRO_CODENAME"
+export DEBIAN_FRONTEND=noninteractive
+$SUDO apt update -y
+$SUDO apt install -y ca-certificates curl gnupg lsb-release
+$SUDO mkdir -p /etc/apt/keyrings
+curl -fsSL "https://download.docker.com/linux/$ID/gpg" | $SUDO gpg --dearmor --yes --batch -o /etc/apt/keyrings/docker.gpg
+$SUDO chmod a+r /etc/apt/keyrings/docker.gpg
+ARCH="$(dpkg --print-architecture 2>/dev/null || echo amd64)"
+$SUDO rm -f /etc/apt/sources.list.d/docker.list
+echo "deb [arch=$ARCH signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$ID $DISTRO_CODENAME stable" | $SUDO tee /etc/apt/sources.list.d/docker.list > /dev/null
+$SUDO apt update -y
+if apt-cache policy docker-ce | grep -q 'Candidate: (none)'; then
+    echo "Docker repo not available for this distro/codename"
+    exit 1
+fi
+apt-cache policy docker-ce | awk 'NR<=10'
+$SUDO apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+$SUDO docker info >/dev/null 2>&1 || true
+if [[ -n "${USER:-}" && "$USER" != "root" ]]; then
+    $SUDO usermod -aG docker "$USER" || true
+fi
+echo "✅ Docker installed successfully."
+echo "ℹ️  Log out and back in (or run: newgrp docker) to use Docker without sudo."

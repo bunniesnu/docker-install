@@ -1,0 +1,41 @@
+name: Test Docker Install Script
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-22.04
+          - ubuntu-24.04
+
+        container:
+          - debian:11
+          - debian:12
+          - ubuntu:22.04
+          - ubuntu:24.04
+
+    runs-on: ${{ matrix.os }}
+
+    container:
+      image: ${{ matrix.container }}
+      options: --privileged
+
+    steps:
+      - name: Install sudo (for minimal containers)
+        run: |
+          apt-get update
+          apt-get install -y sudo curl gnupg lsb-release
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Make script executable
+        run: chmod +x install.sh
+
+      - name: Run script
+        run: ./install.sh
