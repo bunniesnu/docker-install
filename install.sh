@@ -41,7 +41,16 @@ if apt-cache policy docker-ce | grep -q 'Candidate: (none)'; then
 fi
 apt-cache policy docker-ce | awk 'NR<=10'
 $SUDO apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-$SUDO docker info >/dev/null 2>&1 || true
+if ! command -v docker >/dev/null 2>&1; then
+    echo "Docker installation failed"
+    exit 1
+fi
+docker --version
+if $SUDO docker info >/dev/null 2>&1; then
+    echo "Docker daemon is running"
+else
+    echo "⚠️ Docker installed, but daemon not running (this can be normal)"
+fi
 if [[ -n "${USER:-}" && "$USER" != "root" ]]; then
     $SUDO usermod -aG docker "$USER" || true
 fi
