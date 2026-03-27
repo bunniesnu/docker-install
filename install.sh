@@ -53,23 +53,23 @@ install_apt() {
     
 }
 install_dnf() {
-    $SUDO dnf -y install dnf-plugins-core
+    $SUDO dnf -y install dnf-plugins-core curl gnupg2 ca-certificates
     $SUDO dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
     $SUDO dnf -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     $SUDO systemctl enable --now docker || true
 }
 install_pacman() {
-    $SUDO pacman -Sy --noconfirm docker docker-compose
+    $SUDO pacman -Sy --noconfirm docker docker-compose curl gnupg ca-certificates
     $SUDO systemctl enable --now docker || true
 }
 install_apk() {
-    $SUDO apk add --no-cache docker docker-cli-compose
+    $SUDO apk add --no-cache docker docker-cli-compose curl gnupg ca-certificates
     $SUDO rc-update add docker default || true
     $SUDO service docker start || true
 }
 install_zypper() {
     $SUDO zypper refresh
-    $SUDO zypper install -y docker docker-compose
+    $SUDO zypper install -y docker docker-compose curl gnupg ca-certificates
     $SUDO systemctl enable --now docker || true
 }
 case "$PKG" in
